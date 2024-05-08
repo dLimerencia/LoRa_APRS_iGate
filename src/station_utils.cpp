@@ -78,4 +78,9 @@ namespace STATION_Utils {
         outputPacketBuffer.push_back(packet);
     }
 
+    bool hasHeardSomeone() {
+        deleteNotHeard();
+        return !lastHeardStation.empty();
+    }
+
 }

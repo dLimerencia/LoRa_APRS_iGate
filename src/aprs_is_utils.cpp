@@ -32,6 +32,8 @@ extern bool                 stationBeacon;
 
 namespace APRS_IS_Utils {
 
+    uint32_t lastTxFromIs = 0;
+
     void upload(String line) {
         espClient.print(line + "\r\n");
     }
@@ -95,7 +97,7 @@ namespace APRS_IS_Utils {
             if(aprsisState == "--" && !Config.display.alwaysOn && Config.display.timeout != 0) {
                 display_toggle(true);
                 lastScreenOn = millis();
-            }            
+            }
         }
         secondLine = "WiFi: " + wifiState + " APRS-IS: " + aprsisState;
     }
@@ -109,12 +111,20 @@ namespace APRS_IS_Utils {
         }
     }
 
-    String buildPacketToTx(String aprsisPacket) {
+    String buildPacketMessageToTx(String aprsisPacket) {
         String firstPart, messagePart;
         aprsisPacket.trim();
         firstPart = aprsisPacket.substring(0, aprsisPacket.indexOf(","));
         messagePart = aprsisPacket.substring(aprsisPacket.indexOf("::") + 2);
         return firstPart + ",TCPIP,WIDE1-1," + Config.callsign + "::" + messagePart;
+    }
+
+    String buildPacketSameContentToTx(String aprsisPacket) {
+        String firstPart, messagePart;
+        aprsisPacket.trim();
+        firstPart = aprsisPacket.substring(0, aprsisPacket.indexOf(","));
+        messagePart = aprsisPacket.substring(aprsisPacket.indexOf(":"));
+        return firstPart + ",TCPIP," + Config.callsign + messagePart;
     }
 
     bool processReceivedLoRaMessage(String sender, String packet) {
@@ -190,16 +200,18 @@ namespace APRS_IS_Utils {
     }
 
     void processAPRSISPacket(String packet) {
-        String Sender, AddresseeAndMessage, Addressee, receivedMessage;
-        if (!packet.startsWith("#")) {
+        String Sender, Addressee, receivedMessage;
+        if (!packet.isEmpty() && !packet.startsWith("#")) {
+            Utils::print("---> APRSIS Packet Rx    :");
+            Utils::println(packet);
+            Sender = packet.substring(0,packet.indexOf(">"));
             if (packet.indexOf("::") > 0) {
-                Sender = packet.substring(0, packet.indexOf(">"));
-                AddresseeAndMessage = packet.substring(packet.indexOf("::") + 2);
+                String AddresseeAndMessage = packet.substring(packet.indexOf("::")+2);
                 Addressee = AddresseeAndMessage.substring(0, AddresseeAndMessage.indexOf(":"));
                 Addressee.trim();
                 if (Addressee == Config.callsign) {             // its for me!
-                    if (AddresseeAndMessage.indexOf("{") > 0) {     // ack?
-                        String ackMessage = "ack" + AddresseeAndMessage.substring(AddresseeAndMessage.indexOf("{") + 1);
+                    if (AddresseeAndMessage.indexOf("{")>0) {     // ack?
+                        String ackMessage = "ack" + AddresseeAndMessage.substring(AddresseeAndMessage.indexOf("{")+1);
                         ackMessage.trim();
                         delay(4000);
                         for (int i = Sender.length(); i < 9; i++) {
@@ -210,7 +222,7 @@ namespace APRS_IS_Utils {
                         A7670_Utils::uploadToAPRSIS(ackPacket);
                         #else
                         upload(ackPacket);
-                        #endif                        
+                        #endif
                         receivedMessage = AddresseeAndMessage.substring(AddresseeAndMessage.indexOf(":") + 1, AddresseeAndMessage.indexOf("{"));
                     } else {
                         receivedMessage = AddresseeAndMessage.substring(AddresseeAndMessage.indexOf(":") + 1);
@@ -228,7 +240,7 @@ namespace APRS_IS_Utils {
                         A7670_Utils::uploadToAPRSIS(queryAnswer);
                         #else
                         upload(queryAnswer);
-                        #endif                        
+                        #endif
                         SYSLOG_Utils::log("APRSIS Tx", queryAnswer, 0, 0, 0);
                         fifthLine = "APRS-IS ----> APRS-IS";
                         sixthLine = Config.callsign;
@@ -242,13 +254,33 @@ namespace APRS_IS_Utils {
                     Utils::print("Received from APRS-IS  : " + packet);
 
                     if (Config.aprs_is.toRF && STATION_Utils::wasHeard(Addressee)) {
-                        STATION_Utils::addToOutputPacketBuffer(buildPacketToTx(packet));
+                        STATION_Utils::addToOutputPacketBuffer(buildPacketMessageToTx(packet));
                         display_toggle(true);
                         lastScreenOn = millis();
                         Utils::typeOfPacket(packet, "APRS-LoRa");
                     }
                 }
                 show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine, 0);
+            } else {
+                Addressee = packet.substring(0, packet.indexOf(":"));
+                Addressee.trim();
+                if (Sender != Config.callsign // It's not for me
+                    && Addressee.indexOf("qAX") == -1 // Authorized login
+                    && Addressee.indexOf("RFONLY") == -1 // RF allowed
+                    && Addressee.indexOf("NOGATE") == -1  // RF allowed
+                    && Addressee.indexOf("TCPXX") == -1) { // Packet is not for Internet
+                    if (Config.aprs_is.toRF // TX to RF enabled
+                        && (
+                            (!Config.loramodule.rxActive && millis() - lastTxFromIs >= 30000) // LoRa RX disabled so we wait between 2 frames TX
+                            || STATION_Utils::hasHeardSomeone() // Or we have heard someone
+                    )) {
+                        STATION_Utils::addToOutputPacketBuffer(buildPacketSameContentToTx(packet));
+                        display_toggle(true);
+                        lastScreenOn = millis();
+                        lastTxFromIs = millis();
+                        Utils::typeOfPacket(packet, "APRS-LoRa");
+                    }
+                }
             }
         }
     }
@@ -260,6 +292,7 @@ namespace APRS_IS_Utils {
         if (espClient.connected()) {
             if (espClient.available()) {
                 String aprsisPacket = espClient.readStringUntil('\r');
+                aprsisPacket.trim();
                 // Serial.println(aprsisPacket);
                 processAPRSISPacket(aprsisPacket);
                 lastRxTime = millis();

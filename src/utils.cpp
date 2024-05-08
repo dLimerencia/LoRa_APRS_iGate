@@ -130,11 +130,12 @@ namespace Utils {
             }
 
             if (Config.aprs_is.active && Config.beacon.sendViaAPRSIS) {
-                show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, "SENDING IGATE BEACON", 0); 
+                show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, "SENDING IGATE BEACON", 0);
                 seventhLine = "     listening...";
                 #ifdef ESP32_DIY_LoRa_A7670
                 A7670_Utils::uploadToAPRSIS(beaconPacket);
                 #else
+                Utils::println("-- Sending Beacon to APRSIS --");
                 APRS_IS_Utils::upload(beaconPacket);
                 #endif
             }
@@ -142,6 +143,7 @@ namespace Utils {
             if (Config.beacon.sendViaRF) {
                 show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, "SENDING DIGI BEACON", 0);
                 seventhLine = "     listening...";
+                Utils::println("-- Sending Beacon to RF --");
                 STATION_Utils::addToOutputPacketBuffer(secondaryBeaconPacket);
             }
 

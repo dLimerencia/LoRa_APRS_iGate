@@ -11,6 +11,7 @@ namespace STATION_Utils {
     bool wasHeard(String station);
     void processOutputPacketBuffer();
     void addToOutputPacketBuffer(String packet);
+    bool hasHeardSomeone();
 
 }
 
