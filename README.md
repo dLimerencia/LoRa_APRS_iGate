@@ -1,8 +1,9 @@
 # LoRa APRS iGate/Digirepeater
 ## Grupo 7
-Integrantes: - Diego Armando Ramirez Mata
-             - Asdrubal Gerardo Gomez Gutierrez
-             - Steven Alberto Rojas Rojas
+Integrantes: 
+- Diego Armando Ramirez Mata
+- Asdrubal Gerardo Gomez Gutierrez
+- Steven Alberto Rojas Rojas
 
 
 Este firmware está destinado a utilizar placas basadas en ESP32 con módulos LoRa y GPS para vivir en el mundo APRS. 
