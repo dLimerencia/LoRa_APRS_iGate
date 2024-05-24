@@ -1,22 +1,22 @@
 {
-    "callsign": "NOCALL-10",
+    "callsign": "TI3WTI-10",
     "wifi": {
-        "autoAP": {
-            "password": "1234567890",
-            "powerOff": 10
-        },
-        "AP": []
+        "active": true,
+        "AP": [{
+            "SSID":"Nombre de Red",
+            "password":"Contrasena de Red"
+            }]
     },
     "beacon": {
-        "latitude": 0.0,
-        "longitude": 0.0,
+        "latitude": 0.0000,
+        "longitude": -0.0000,
         "comment": "LoRa APRS",
         "interval": 15,
         "overlay": "L",
         "symbol": "a",
         "path": "WIDE1-1",
         "sendViaAPRSIS": false,
-        "sendViaRF": false
+        "sendViaRF": true
     },
     "digi": {
         "mode": 0
@@ -27,14 +27,12 @@
         "acceptOwn": false
     },
     "aprs_is": {
-        "active": false,
-        "passcode": "XYZVW",
-        "server": "rotate.aprs2.net",
+        "active": true,
+        "passcode": "16565",
+        "server": "noam.aprs2.net",
         "port": 14580,
         "filter": "m/10",
-        "toRF": false,
-        "messagesToRF": false,
-        "objectsToRF": false
+        "toRF": true
     },
     "lora": {
         "txFreq": 433775000,
@@ -43,7 +41,7 @@
         "signalBandwidth": 125000,
         "codingRate4": 5,
         "power": 20,
-        "txActive": false,
+        "txActive": true,
         "rxActive": true
     },
     "display": {
@@ -71,9 +69,6 @@
         "externalVoltageMeasurement": false,
         "externalVoltagePin": 34,
         "lowPowerMode": false,
-        "lowVoltageCutOff": 0,
-        "backupDigiMode": false,
-        "rebootMode": false,
-        "rebootModeTime": 0
+        "lowVoltageCutOff": 0
     }
 }
