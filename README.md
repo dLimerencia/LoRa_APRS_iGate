@@ -1,5 +1,6 @@
 # LoRa APRS iGate/Digirepeater
-## Grupo 7
+## Taller de Integrador
+### Grupo 7
 Integrantes: 
 - Diego Armando Ramirez Mata
 - Asdrubal Gerardo Gomez Gutierrez
