@@ -1,15 +1,20 @@
 {
     "callsign": "TI3WTI-10",
     "wifi": {
-        "active": true,
-        "AP": [{
-            "SSID":"Nombre de Red",
-            "password":"Contrasena de Red"
-            }]
+        "AP": [
+          {
+            "ssid": "Nombre de Red",
+            "password": "Contraseña de Red"
+          }
+        ],
+        "autoAP": {
+          "password": "Contraseña de Red",
+          "powerOff": 10
+        }
     },
     "beacon": {
-        "latitude": 0.0000,
-        "longitude": -0.0000,
+        "latitude": 9.8335,
+        "longitude": -83.8620565,
         "comment": "LoRa APRS",
         "interval": 15,
         "overlay": "L",
